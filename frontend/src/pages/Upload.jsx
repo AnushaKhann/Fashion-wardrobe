@@ -1,5 +1,7 @@
+// frontend/src/pages/Upload.jsx
 import { motion } from "framer-motion";
 import UploadForm from "../components/UploadForm";
+import PageHeader from '../components/PageHeader';
 
 export default function Upload() {
   return (
@@ -8,7 +10,11 @@ export default function Upload() {
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.3 }}
     >
-      <h2 className="text-2xl font-bold mb-4">⬆️ Upload New Clothing</h2>
+      <PageHeader 
+        title="Upload New" 
+        highlight="Clothing"
+        subtitle="Add a new item to your digital closet. Our AI will help categorize it."
+      />
       <UploadForm />
     </motion.div>
   );

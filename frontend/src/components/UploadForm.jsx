@@ -1,159 +1,142 @@
+// frontend/src/components/UploadForm.jsx
+
 import { useState, useEffect } from "react";
 import CreatableSelect from "react-select/creatable";
 import axios from "axios";
 
-// Dropdown options
+// UPDATED: New, more detailed category options
 const categoryOptions = [
-  { value: "Formal", label: "Formal" },
-  { value: "Casual", label: "Casual" },
-  { value: "Party", label: "Party" },
-  { value: "Chill", label: "Chill" },
-  { value: "Nightwear", label: "Nightwear" },
-  { value: "Ethnic", label: "Ethnic" },
+    { value: "T-Shirt", label: "T-Shirt" },
+    { value: "Shirt", label: "Shirt" },
+    { value: "Blouse", label: "Blouse" },
+    { value: "Sweater", label: "Sweater" },
+    { value: "Jeans", label: "Jeans" },
+    { value: "Trousers", label: "Trousers" },
+    { value: "Skirt", label: "Skirt" },
+    { value: "Dress", label: "Dress" },
+    { value: "Jacket", label: "Jacket" },
+    { value: "Coat", label: "Coat" },
+    { value: "Heels", label: "Heels" },
+    { value: "Flats", label: "Flats" },
+    { value: "Sneakers", label: "Sneakers" },
 ];
 
 const colorOptions = [
-  { value: "Black", label: "Black" },
-  { value: "White", label: "White" },
-  { value: "Red", label: "Red" },
-  { value: "Blue", label: "Blue" },
-  { value: "Green", label: "Green" },
-  { value: "Pink", label: "Pink" },
+  { value: "Black", label: "Black" }, { value: "White", label: "White" },
+  { value: "Red", label: "Red" }, { value: "Blue", label: "Blue" },
+  { value: "Green", label: "Green" }, { value: "Pink", label: "Pink" },
+  { value: "Grey", label: "Grey" }, { value: "Beige", label: "Beige" },
+  { value: "Navy", label: "Navy" },
 ];
 
 // Dropdown styling logic
-const getSelectStyles = () => {
-  const isDark = document.documentElement.classList.contains("dark");
-  return {
-    control: (base, state) => ({
-      ...base,
-      backgroundColor: isDark ? "#1f2937" : "#ffffff",
-      color: isDark ? "#ffffff" : "#000000",
-      borderColor: state.isFocused ? "#2563eb" : "#ccc",
-      boxShadow: state.isFocused ? "0 0 0 1px #2563eb" : "none",
-    }),
-    singleValue: (base) => ({
-      ...base,
-      color: isDark ? "#ffffff" : "#000000",
-    }),
-    menu: (base) => ({
-      ...base,
-      backgroundColor: isDark ? "#1f2937" : "#ffffff",
-    }),
-    option: (base, state) => ({
-      ...base,
-      backgroundColor: state.isFocused
-        ? isDark
-          ? "#374151"
-          : "#e0e7ff"
-        : "transparent",
-      color: isDark ? "#ffffff" : "#000000",
-    }),
-    placeholder: (base) => ({
-      ...base,
-      color: isDark ? "#9ca3af" : "#6b7280",
-    }),
-    input: (base) => ({
-      ...base,
-      color: isDark ? "#ffffff" : "#000000",
-    }),
-  };
-};
+const getSelectStyles = (isDark) => ({
+    control: (base) => ({ ...base, backgroundColor: isDark ? "#1f2937" : "#ffffff", borderColor: isDark ? "#4b5563" : "#d1d5db" }),
+    singleValue: (base) => ({ ...base, color: isDark ? "#ffffff" : "#000000" }),
+    menu: (base) => ({ ...base, backgroundColor: isDark ? "#1f2937" : "#ffffff" }),
+    option: (base, state) => ({ ...base, backgroundColor: state.isFocused ? (isDark ? "#374151" : "#e0e7ff") : "transparent", color: isDark ? "#ffffff" : "#000000" }),
+    input: (base) => ({ ...base, color: isDark ? "#ffffff" : "#000000" }),
+});
 
 export default function UploadForm() {
   const [file, setFile] = useState(null);
   const [category, setCategory] = useState(null);
   const [color, setColor] = useState(null);
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
-  // Detect theme change dynamically
   useEffect(() => {
-    const checkDark = () => {
-      const isDark = document.documentElement.classList.contains("dark");
-      setIsDarkMode(isDark);
-    };
-
+    const checkDark = () => setIsDarkMode(document.documentElement.classList.contains("dark"));
     checkDark();
     const observer = new MutationObserver(checkDark);
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ["class"],
-    });
-
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
     return () => observer.disconnect();
   }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!file || !category || !color) {
-      alert("Please fill all fields.");
+    // FIX: Only the file is now required.
+    if (!file) {
+      alert("Please select an image to upload.");
       return;
     }
+    setUploading(true);
 
     const formData = new FormData();
     formData.append("image", file);
-    formData.append("category", category.value);
-    formData.append("color", color.value);
+    
+    // FIX: Only append category and color if they have been selected by the user.
+    if (category) {
+      formData.append("category", category.value);
+    }
+    if (color) {
+      formData.append("color", color.value);
+    }
 
     try {
-      await axios.post(`${process.env.REACT_APP_API_URL}/upload`, formData);
+      await axios.post(`http://127.0.0.1:5000/upload`, formData);
       alert("Uploaded successfully!");
+      // Reset form
       setFile(null);
       setCategory(null);
       setColor(null);
+      // This is a simple way to reset the file input visually
+      e.target.reset(); 
     } catch (err) {
       console.error(err);
       alert("Upload failed.");
+    } finally {
+        setUploading(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-6">
       {/* File input */}
       <div>
-        <label className="block font-semibold mb-1">Upload Image</label>
+        <label className="block font-semibold mb-2">Upload Image (Required)</label>
         <input
           type="file"
           onChange={(e) => setFile(e.target.files[0])}
           required
-          className={`block w-full p-2 border rounded transition-colors focus:outline-none
-            focus:border-blue-600 focus:ring-1 focus:ring-blue-600
-            ${isDarkMode ? "bg-gray-700 text-white" : "bg-white text-black"}`}
+          className={`block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-violet-50 dark:file:bg-violet-900/50 file:text-violet-700 dark:file:text-violet-300 hover:file:bg-violet-100 dark:hover:file:bg-violet-900/80`}
         />
       </div>
 
       {/* Category */}
       <div>
-        <label className="block font-semibold mb-1">Category</label>
+        <label className="block font-semibold mb-2">Category (Optional)</label>
+        <p className="text-xs text-gray-500 mb-2">Leave blank to let the AI decide.</p>
         <CreatableSelect
           options={categoryOptions}
           value={category}
           onChange={setCategory}
           isClearable
           placeholder="Select or type category..."
-          styles={getSelectStyles()}
+          styles={getSelectStyles(isDarkMode)}
         />
       </div>
 
       {/* Color */}
       <div>
-        <label className="block font-semibold mb-1">Color</label>
+        <label className="block font-semibold mb-2">Color (Optional)</label>
         <CreatableSelect
           options={colorOptions}
           value={color}
           onChange={setColor}
           isClearable
           placeholder="Select or type color..."
-          styles={getSelectStyles()}
+          styles={getSelectStyles(isDarkMode)}
         />
       </div>
 
       {/* Submit */}
       <button
         type="submit"
-        className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+        disabled={uploading}
+        className="w-full py-3 text-white font-bold rounded-lg bg-gradient-to-r from-pink-500 to-violet-500 hover:from-pink-600 hover:to-violet-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
       >
-        Upload
+        {uploading ? 'Uploading...' : 'Upload'}
       </button>
     </form>
   );

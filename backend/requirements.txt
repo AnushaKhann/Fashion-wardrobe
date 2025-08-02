@@ -1,5 +1,11 @@
-flask
-flask-cors
-flask-sqlalchemy
+Flask
+Flask-Cors
+Flask-SQLAlchemy
 python-dotenv
 gunicorn
+requests
+Werkzeug
+
+tensorflow
+scikit-learn
+Pillow
